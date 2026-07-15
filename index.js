@@ -1,13 +1,12 @@
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
-import { connectToDatabase } from "./db.js";
+import mongoose from "mongoose";
+
 import requestLogger from "./middleware/requestLogger.js";
-import errorHandler from "./middleware/errorHandler.js";
+import authRouter from "./routes/auth.js";
 
 const app = express();
-const PORT = 3000;
-
-await connectToDatabase();
 
 app.use(cors());
 app.use(express.json());
@@ -15,7 +14,16 @@ app.use(requestLogger);
 
 app.get("/", (req, res) => res.send("StudentTracker API radi!"));
 
-app.use(errorHandler);
+app.use("/auth", authRouter);
+
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => console.log("Uspješno spajanje na bazu podataka"))
+  .catch((error) =>
+    console.error("Greška pri spajanju na bazu:", error.message),
+  );
+
+const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
   console.log(`Server je pokrenut na http://localhost:${PORT}`);
