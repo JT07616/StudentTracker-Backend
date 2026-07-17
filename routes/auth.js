@@ -3,12 +3,13 @@ import User from "../models/user.js";
 import { generateJWT } from "../auth.js";
 import { validacijaRegistracije, validacijaLogina} from "../validators/authValidator.js";
 import { obradaGresaka } from "../middleware/obradaGresaka.js";
+import { authMiddleware } from "../middleware/auth.js";
 
 const router = express.Router();
 
 router.post("/register", validacijaRegistracije, obradaGresaka, async (req, res) => {
     try {
-      const { username, email, password } = req.body;
+      const { username, email, password, brojSemestara } = req.body;
 
       const emailPostoji = await User.findOne({ email });
 
@@ -23,8 +24,8 @@ router.post("/register", validacijaRegistracije, obradaGresaka, async (req, res)
         return res.status(409).json({ message: "Korisničko ime je zauzeto" });
       }
 
-      // lozinka se hashira u pre-save hooku modela
-      const korisnik = await User.create({ username, email, password });
+      // lozinka se hashira u pre-save hooku modela; brojSemestara undefined -> schema default (6)
+      const korisnik = await User.create({ username, email, password, brojSemestara });
 
       // odmah izdaj token -> korisnik je nakon registracije prijavljen (auto-login)
       const token = generateJWT({
@@ -80,6 +81,16 @@ router.post("/login", validacijaLogina, obradaGresaka, async (req, res) => {
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Greška pri prijavi" });
+  }
+});
+
+router.get("/me", authMiddleware, async (req, res) => {
+  try {
+    const korisnik = await User.findById(req.korisnik.id).select("-password");
+    return res.status(200).json(korisnik);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Greška pri dohvaćanju profila" });
   }
 });
 

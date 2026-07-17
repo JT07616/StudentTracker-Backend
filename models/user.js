@@ -8,7 +8,7 @@ const userSchema = new mongoose.Schema(
     password: { type: String, required: true },
     emailReminders: { type: Boolean, default: true },
     showOnLeaderboard: { type: Boolean, default: true },
-    weeklyGoal: { type: Number, min: 0, max: 60, default: 0 },
+    brojSemestara: { type: Number, min: 1, max: 12, default: 6 }, // trajanje studija - odreduje raspon semestara u aplikaciji
   },
   { timestamps: true },
 );
