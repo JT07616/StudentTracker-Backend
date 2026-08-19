@@ -9,7 +9,7 @@ const router = express.Router();
 
 router.post("/register", validacijaRegistracije, obradaGresaka, async (req, res) => {
     try {
-      const { username, email, password, brojSemestara } = req.body;
+      const { username, email, password } = req.body;
 
       const emailPostoji = await User.findOne({ email });
 
@@ -17,17 +17,14 @@ router.post("/register", validacijaRegistracije, obradaGresaka, async (req, res)
         return res.status(409).json({ message: "Korisnik s tim emailom već postoji" });
       }
 
-      // username se prikazuje javno pa mora biti jedinstven
       const usernamePostoji = await User.findOne({ username });
 
       if (usernamePostoji) {
         return res.status(409).json({ message: "Korisničko ime je zauzeto" });
       }
 
-      // lozinka se hashira u pre-save hooku modela; brojSemestara undefined -> schema default (6)
-      const korisnik = await User.create({ username, email, password, brojSemestara });
+      const korisnik = await User.create({ username, email, password });
 
-      // odmah izdaj token -> korisnik je nakon registracije prijavljen (auto-login)
       const token = generateJWT({
         id: korisnik._id,
         email: korisnik.email,
@@ -57,7 +54,6 @@ router.post("/login", validacijaLogina, obradaGresaka, async (req, res) => {
 
     const korisnik = await User.findOne({ email });
     if (!korisnik) {
-      // ista poruka za nepostojeći email i krivu lozinku (ne otkrivamo koji email postoji)
       return res.status(401).json({ message: "Pogrešan email ili lozinka" });
     }
 
@@ -93,5 +89,6 @@ router.get("/me", authMiddleware, async (req, res) => {
     return res.status(500).json({ message: "Greška pri dohvaćanju profila" });
   }
 });
+
 
 export default router;

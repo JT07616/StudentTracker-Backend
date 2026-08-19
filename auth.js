@@ -8,7 +8,6 @@ if (!JWT_SECRET) {
   throw new Error("JWT_SECRET mora biti definiran u .env datoteci");
 }
 
-// Generiranje JWT tokena (traje 2h)
 const generateJWT = (payload) => {
   try {
     return jwt.sign(payload, JWT_SECRET, { expiresIn: "2h" });
@@ -18,7 +17,6 @@ const generateJWT = (payload) => {
   }
 };
 
-// Provjera valjanosti JWT tokena (vrati payload ili null)
 const verifyJWT = (token) => {
   try {
     return jwt.verify(token, JWT_SECRET);
