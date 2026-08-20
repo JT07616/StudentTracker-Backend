@@ -1,6 +1,7 @@
 import express from "express";
 import Kolegij from "../models/kolegij.js";
 import AkademskaGodina from "../models/akademskaGodina.js";
+import Obveza from "../models/obveza.js";
 import { validacijaKolegija } from "../validators/kolegijiValidator.js";
 import { obradaGresaka } from "../middleware/obradaGresaka.js";
 import { authMiddleware } from "../middleware/auth.js";
@@ -55,55 +56,52 @@ router.post("/", authMiddleware,  validacijaKolegija, obradaGresaka, async (req,
 );
 
 router.put("/:id", authMiddleware, validacijaKolegija, obradaGresaka, async (req, res) => {
-    try {
-      const id = req.params.id;
-      const { naziv, ects, godinaId, semestar, status, ocjena, ispitniRok } = req.body;
+  try {
+    const { naziv, ects, godinaId, semestar, status, ocjena, ispitniRok } = req.body;
 
-      const godina = await AkademskaGodina.findOne({_id: godinaId, korisnikId: req.korisnik.id});
-      if (!godina) {
-        return res.status(404).json({ message: "Godina nije pronađena" });
-      }
-
-      // semestar mora pripadati toj godini (npr. semestar 5 -> 3. godina)
-      if (Math.ceil(semestar / 2) !== godina.redniBroj) {
-        return res.status(400).json({ message: "Semestar ne pripada toj godini" });
-      }
-
-      const postoji = await Kolegij.findOne({korisnikId: req.korisnik.id, naziv,_id: { $ne: id },});
-
-      if (postoji) {
-        return res.status(409).json({message: "Ne možete izmijeniti naziv u onaj koji već postoji"});
-      }
-
-      const kolegij = await Kolegij.findOneAndUpdate(
-        { _id: id, korisnikId: req.korisnik.id },
-        { naziv, ects, godinaId, semestar, status, ocjena, ispitniRok },
-        { new: true }, 
-      );
-
-      if (!kolegij) {
-        return res.status(404).json({ message: "Kolegij nije pronađen" });
-      }
-
-      return res.status(200).json(kolegij);
-
-    } catch (error) {
-      console.error(error);
-      return res.status(500).json({ message: "Greška prilikom uređivanja kolegija" });
+    const kolegij = await Kolegij.findById(req.params.id);
+    if (!kolegij || kolegij.korisnikId.toString() !== req.korisnik.id) {
+      return res.status(404).json({ message: "Kolegij nije pronađen" });
     }
-  },
-);
+
+    const godina = await AkademskaGodina.findOne({ _id: godinaId, korisnikId: req.korisnik.id });
+    if (!godina) {
+      return res.status(404).json({ message: "Godina nije pronađena" });
+    }
+
+    if (Math.ceil(semestar / 2) !== godina.redniBroj) {
+      return res.status(400).json({ message: "Semestar ne pripada toj godini" });
+    }
+
+    const postoji = await Kolegij.findOne({ korisnikId: req.korisnik.id, naziv, _id: { $ne: kolegij._id } });
+    if (postoji) {
+      return res.status(409).json({ message: "Ne možete izmijeniti naziv u onaj koji već postoji" });
+    }
+
+    Object.assign(kolegij, { naziv, ects, godinaId, semestar, status, ocjena, ispitniRok });
+
+    await kolegij.save();
+
+    return res.status(200).json(kolegij);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Greška prilikom uređivanja kolegija" });
+  }
+});
 
 router.delete("/:id", authMiddleware, async (req, res) => {
   try {
-    const id = req.params.id;
-    const kolegij = await Kolegij.findOneAndDelete({_id: id, korisnikId: req.korisnik.id});
+    const kolegij = await Kolegij.findById(req.params.id);
 
-    if (!kolegij) {
+    if (!kolegij || kolegij.korisnikId.toString() !== req.korisnik.id) {
       return res.status(404).json({ message: "Kolegij nije pronađen" });
     }
-    return res.status(200).json({ message: "Kolegij obrisan" });
 
+    // s kolegijem brisemo i sve njegove obveze 
+    await Obveza.deleteMany({ kolegijId: kolegij._id });
+    await kolegij.deleteOne();
+    
+    return res.status(200).json({ message: "Kolegij obrisan" });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Greška prilikom brisanja kolegija" });

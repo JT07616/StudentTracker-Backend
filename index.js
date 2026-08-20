@@ -7,6 +7,7 @@ import requestLogger from "./middleware/requestLogger.js";
 import authRouter from "./routes/auth.js";
 import akademskeGodineRouter from "./routes/akademskeGodine.js";
 import kolegijiRouter from "./routes/kolegiji.js";
+import obvezeRouter from "./routes/obveze.js";
 
 
 const app = express();
@@ -20,6 +21,7 @@ app.get("/", (req, res) => res.send("StudentTracker API radi!"));
 app.use("/auth", authRouter);
 app.use("/akademske-godine", akademskeGodineRouter);
 app.use("/kolegiji", kolegijiRouter);
+app.use("/obveze", obvezeRouter);
 
 
 mongoose
