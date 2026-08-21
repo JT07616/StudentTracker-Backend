@@ -1,7 +1,7 @@
 import express from "express";
 import User from "../models/user.js";
 import { generateJWT } from "../auth.js";
-import { validacijaRegistracije, validacijaLogina} from "../validators/authValidator.js";
+import { validacijaRegistracije, validacijaLogina, validacijaPromjeneLozinke} from "../validators/authValidator.js";
 import { obradaGresaka } from "../middleware/obradaGresaka.js";
 import { authMiddleware } from "../middleware/auth.js";
 
@@ -87,6 +87,30 @@ router.get("/me", authMiddleware, async (req, res) => {
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Greška pri dohvaćanju profila" });
+  }
+});
+
+router.patch("/lozinka", authMiddleware, validacijaPromjeneLozinke, obradaGresaka, async (req, res) => {
+  try {
+    const { staraLozinka, novaLozinka } = req.body;
+
+    const korisnik = await User.findById(req.korisnik.id);
+    if (!korisnik) {
+      return res.status(404).json({ message: "Korisnik nije pronađen" });
+    }
+
+    const podudaranje = await korisnik.provjeriLozinku(staraLozinka);
+    if (!podudaranje) {
+      return res.status(401).json({ message: "Stara lozinka nije točna" });
+    }
+    korisnik.password = novaLozinka;
+
+    await korisnik.save(); 
+
+    return res.status(200).json({ message: "Lozinka promijenjena" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Greška pri promjeni lozinke" });
   }
 });
 

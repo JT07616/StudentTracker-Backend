@@ -9,7 +9,6 @@ import akademskeGodineRouter from "./routes/akademskeGodine.js";
 import kolegijiRouter from "./routes/kolegiji.js";
 import obvezeRouter from "./routes/obveze.js";
 
-
 const app = express();
 
 app.use(cors());

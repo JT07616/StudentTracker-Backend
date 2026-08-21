@@ -15,3 +15,9 @@ export const validacijaLogina = [
   body("password").notEmpty().withMessage("Upišite lozinku"),
 ];
 
+export const validacijaPromjeneLozinke = [
+  body("staraLozinka").notEmpty().withMessage("Upišite staru lozinku"),
+  body("novaLozinka")
+    .isLength({ min: 8 }).withMessage("Nova lozinka mora imati barem 8 znakova")
+    .custom((value) => /[A-Za-z]/.test(value) && /\d/.test(value)).withMessage("Nova lozinka mora sadržavati barem jedno slovo i jedan broj"),
+];
