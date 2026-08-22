@@ -10,7 +10,7 @@ if (!JWT_SECRET) {
 
 const generateJWT = (payload) => {
   try {
-    return jwt.sign(payload, JWT_SECRET, { expiresIn: "2h" });
+    return jwt.sign(payload, JWT_SECRET, { expiresIn: "7h" });
   } catch (err) {
     console.error(`Greška prilikom generiranja JWT tokena: ${err}`);
     return null;
