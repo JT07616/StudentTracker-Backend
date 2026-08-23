@@ -9,6 +9,7 @@ import akademskeGodineRouter from "./routes/akademskeGodine.js";
 import kolegijiRouter from "./routes/kolegiji.js";
 import obvezeRouter from "./routes/obveze.js";
 import pomocRouter from "./routes/pomoc.js";
+import ucenjeRouter from "./routes/ucenje.js";
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use("/akademske-godine", akademskeGodineRouter);
 app.use("/kolegiji", kolegijiRouter);
 app.use("/obveze", obvezeRouter);
 app.use("/pomoc", pomocRouter);
+app.use("/ucenje", ucenjeRouter);
 
 
 mongoose

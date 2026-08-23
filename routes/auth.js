@@ -1,6 +1,6 @@
 import express from "express";
 import User from "../models/user.js";
-import { generateJWT } from "../auth.js";
+import { generateJWT } from "../jwt.js";
 import { validacijaRegistracije, validacijaLogina, validacijaPromjeneLozinke} from "../validators/authValidator.js";
 import { obradaGresaka } from "../middleware/obradaGresaka.js";
 import { authMiddleware } from "../middleware/auth.js";

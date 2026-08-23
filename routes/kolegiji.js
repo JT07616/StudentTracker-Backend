@@ -2,6 +2,7 @@ import express from "express";
 import Kolegij from "../models/kolegij.js";
 import AkademskaGodina from "../models/akademskaGodina.js";
 import Obveza from "../models/obveza.js";
+import Sesija from "../models/sesija.js";
 import { validacijaKolegija } from "../validators/kolegijiValidator.js";
 import { obradaGresaka } from "../middleware/obradaGresaka.js";
 import { authMiddleware } from "../middleware/auth.js";
@@ -97,8 +98,10 @@ router.delete("/:id", authMiddleware, async (req, res) => {
       return res.status(404).json({ message: "Kolegij nije pronađen" });
     }
 
-    // s kolegijem brisemo i sve njegove obveze 
+    // s kolegijem brisemo i sve njegove obveze
     await Obveza.deleteMany({ kolegijId: kolegij._id });
+    // sesije ne brisemo nego odvezujemo - vrijeme ucenja ostaje zabiljezeno kao "Bez kolegija"
+    await Sesija.updateMany({ kolegijId: kolegij._id }, { kolegijId: null });
     await kolegij.deleteOne();
     
     return res.status(200).json({ message: "Kolegij obrisan" });

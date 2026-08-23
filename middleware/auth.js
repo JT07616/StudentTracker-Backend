@@ -1,4 +1,4 @@
-import { verifyJWT } from "../auth.js";
+import { verifyJWT } from "../jwt.js";
 
 // Autorizacijski middleware - čuva zaštićene rute
 const authMiddleware = async (req, res, next) => {
