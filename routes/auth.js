@@ -1,7 +1,7 @@
 import express from "express";
 import User from "../models/user.js";
 import { generateJWT } from "../jwt.js";
-import { validacijaRegistracije, validacijaLogina, validacijaPromjeneLozinke} from "../validators/authValidator.js";
+import { validacijaRegistracije, validacijaLogina, validacijaPromjeneLozinke } from "../validators/authValidator.js";
 import { obradaGresaka } from "../middleware/obradaGresaka.js";
 import { authMiddleware } from "../middleware/auth.js";
 
@@ -111,6 +111,30 @@ router.patch("/lozinka", authMiddleware, validacijaPromjeneLozinke, obradaGresak
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Greška pri promjeni lozinke" });
+  }
+});
+
+// zeli li korisnik biti vidljiv na ljestvici ucenja
+router.patch("/ljestvica", authMiddleware, async (req, res) => {
+  try {
+    const { showOnLeaderboard } = req.body;
+
+    if (typeof showOnLeaderboard !== "boolean") {
+      return res.status(400).json({ message: "Vrijednost mora biti true ili false" });
+    }
+
+    const korisnik = await User.findById(req.korisnik.id);
+    if (!korisnik) {
+      return res.status(404).json({ message: "Korisnik nije pronađen" });
+    }
+
+    korisnik.showOnLeaderboard = showOnLeaderboard;
+    await korisnik.save();
+
+    return res.status(200).json({ message: "Postavka spremljena" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Greška pri spremanju postavke" });
   }
 });
 
