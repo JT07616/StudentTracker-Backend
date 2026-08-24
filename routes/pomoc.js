@@ -8,7 +8,7 @@ const router = express.Router();
 
 router.get("/", authMiddleware, async (req, res) => {
   try {
-    const zahtjevi = await ZahtjevPomoc.find({$or: [{ status: "otvoren" }, { korisnikId: req.korisnik.id }, { pomagacId: req.korisnik.id }]}).populate("korisnikId", "username email").populate("pomagacId", "username email").sort({ createdAt: -1 });
+    const zahtjevi = await ZahtjevPomoc.find({$or: [{ status: "otvoren" }, { korisnikId: req.korisnik.id }, { pomagacId: req.korisnik.id }]}).populate("korisnikId", "username").populate("pomagacId", "username email").sort({ createdAt: -1 });
 
     const rezultat = zahtjevi.map((zahtjev) => {
       const zapis = {
@@ -61,6 +61,10 @@ router.put("/:id", authMiddleware, validacijaZahtjeva, obradaGresaka, async (req
     const zahtjev = await ZahtjevPomoc.findById(req.params.id);
     if (!zahtjev || zahtjev.korisnikId.toString() !== req.korisnik.id) {
       return res.status(404).json({ message: "Zahtjev nije pronađen" });
+    }
+    // pomagac je pristao na ovaj zahtjev pa se uvjeti ne mijenjaju naknadno
+    if (zahtjev.status !== "otvoren") {
+      return res.status(409).json({ message: "Zahtjev koji je netko prihvatio ne može se mijenjati" });
     }
 
     zahtjev.naslov = naslov;

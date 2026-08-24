@@ -81,11 +81,12 @@ router.delete("/:id", authMiddleware, async (req, res) => {
 // tjedna ljestvica - zbroj minuta ucenja po korisniku od pon
 router.get("/ljestvica", authMiddleware, async (req, res) => {
   try {
-    const [sesijeSvih, korisnici] = await Promise.all([Sesija.find({ pocetak: { $gte: pocetakTjedna() } }), User.find({ showOnLeaderboard: true })]);
+    const [sesijeSvih, korisnici] = await Promise.all([Sesija.find({ pocetak: { $gte: pocetakTjedna() } }), User.find({ $or: [{ showOnLeaderboard: true }, { _id: req.korisnik.id }] })]);
     // za svakog korisnika zbroji njegove minute, pa poredaj i uzmi top 15
     const ljestvica = korisnici
       .map((korisnik) => ({
         username: korisnik.username,
+        skriven: !korisnik.showOnLeaderboard, // moze biti true samo za mene, ostali su ionako vidljivi
         minute: sesijeSvih.filter((sesija) => sesija.korisnikId.toString() === korisnik._id.toString()).reduce((zbroj, sesija) => zbroj + sesija.trajanjeMin, 0),
       }))
       .filter((red) => red.minute > 0).sort((a, b) => b.minute - a.minute).slice(0, 15);

@@ -83,6 +83,9 @@ router.post("/login", validacijaLogina, obradaGresaka, async (req, res) => {
 router.get("/me", authMiddleware, async (req, res) => {
   try {
     const korisnik = await User.findById(req.korisnik.id).select("-password");
+    if (!korisnik) {
+      return res.status(401).json({ message: "Korisnik ne postoji" });
+    }
     return res.status(200).json(korisnik);
   } catch (error) {
     console.error(error);

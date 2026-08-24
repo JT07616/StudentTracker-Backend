@@ -32,10 +32,10 @@ router.post("/", authMiddleware,  validacijaKolegija, obradaGresaka, async (req,
         return res.status(400).json({ message: "Semestar ne pripada toj godini" });
       }
 
-      const postoji = await Kolegij.findOne({korisnikId: req.korisnik.id, naziv});
+      const postoji = await Kolegij.findOne({ korisnikId: req.korisnik.id, semestar, naziv });
 
       if (postoji) {
-        return res.status(409).json({ message: "Već postoji kolegij s tim nazivom" });
+        return res.status(409).json({ message: "U ovom semestru već postoji kolegij s tim nazivom" });
       }
 
       const kolegij = await Kolegij.create({
@@ -74,9 +74,10 @@ router.put("/:id", authMiddleware, validacijaKolegija, obradaGresaka, async (req
       return res.status(400).json({ message: "Semestar ne pripada toj godini" });
     }
 
-    const postoji = await Kolegij.findOne({ korisnikId: req.korisnik.id, naziv, _id: { $ne: kolegij._id } });
+    const postoji = await Kolegij.findOne({ korisnikId: req.korisnik.id, semestar, naziv, _id: { $ne: kolegij._id } });
+    
     if (postoji) {
-      return res.status(409).json({ message: "Ne možete izmijeniti naziv u onaj koji već postoji" });
+      return res.status(409).json({ message: "U ovom semestru već postoji kolegij s tim nazivom" });
     }
 
     Object.assign(kolegij, { naziv, ects, godinaId, semestar, status, ocjena, ispitniRok });
