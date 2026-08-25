@@ -21,14 +21,20 @@ router.post("/", authMiddleware, validacijaObveze, obradaGresaka, async (req, re
   try {
     const { naziv, kolegijId, rok } = req.body;
 
-    const kolegij = await Kolegij.findOne({ _id: kolegijId, korisnikId: req.korisnik.id });
-    if (!kolegij) {
-      return res.status(404).json({ message: "Kolegij nije pronađen" });
+    if (kolegijId) {
+      const kolegij = await Kolegij.findOne({ _id: kolegijId, korisnikId: req.korisnik.id });
+      if (!kolegij) {
+        return res.status(404).json({ message: "Kolegij nije pronađen" });
+      }
+
+      if (kolegij.status === "polozen") {
+        return res.status(409).json({ message: "Kolegij je položen, na njega se ne mogu dodavati obveze" });
+      }
     }
 
     const obveza = await Obveza.create({
       korisnikId: req.korisnik.id,
-      kolegijId,
+      kolegijId: kolegijId || null,
       naziv,
       rok,
     });

@@ -2,7 +2,7 @@ import { body } from "express-validator";
 
 export const validacijaObveze = [
   body("naziv").trim().notEmpty().withMessage("Upišite naziv obveze").isLength({ max: 100 }).withMessage("Naziv može imati najviše 100 znakova"),
-  body("kolegijId").isMongoId().withMessage("Neispravan kolegij"),
+  body("kolegijId").optional({ nullable: true }).isMongoId().withMessage("Neispravan kolegij"),
   body("rok").optional({ nullable: true }).isISO8601().withMessage("Rok mora biti ispravan datum"),
 ];
 

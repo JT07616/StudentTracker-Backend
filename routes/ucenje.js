@@ -42,6 +42,10 @@ router.post("/", authMiddleware, validacijaSesije, obradaGresaka, async (req, re
     if (trajanjeMin > 1440) {
       return res.status(400).json({ message: "Sesija ne može trajati dulje od 24 sata" });
     }
+    // da se sesija u buducnosti ne broji u tjednoj ljestvici svaki tjedan
+    if (new Date(kraj) > new Date(Date.now() + 5 * 60000)) {
+      return res.status(400).json({ message: "Sesija ne može završiti u budućnosti" });
+    }
 
     if (kolegijId) {
       const kolegij = await Kolegij.findOne({ _id: kolegijId, korisnikId: req.korisnik.id });

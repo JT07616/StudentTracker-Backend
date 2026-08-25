@@ -5,6 +5,13 @@ import { authMiddleware } from "../middleware/auth.js";
 
 const router = express.Router();
 
+// akademska godina pocinje u 10. mjesecu, do tada jos traje prosla
+const dozvoljeneGodine = () => {
+  const sada = new Date();
+  const tekuca = sada.getMonth() >= 9 ? sada.getFullYear() : sada.getFullYear() - 1;
+  return Array.from({ length: 12 }, (_, i) => `${tekuca + 1 - i}./${String(tekuca + 2 - i).slice(2)}.`);
+};
+
 router.get("/", authMiddleware, async (req, res) => {
   try {
     const godine = await AkademskaGodina.find({korisnikId: req.korisnik.id,}).sort({ redniBroj: 1 });
@@ -22,6 +29,10 @@ router.post("/", authMiddleware, async (req, res) => {
 
     if (!Number.isInteger(redniBroj) || redniBroj < 1 || redniBroj > 6) {
       return res.status(400).json({ message: "Akademska godina mora biti između 1 i 6" });
+    }
+
+    if (akademskaGodina && !dozvoljeneGodine().includes(akademskaGodina)) {
+      return res.status(400).json({ message: "Neispravna oznaka akademske godine" });
     }
 
     const postoji = await AkademskaGodina.findOne({korisnikId: req.korisnik.id, redniBroj});
